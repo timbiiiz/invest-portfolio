@@ -20,8 +20,8 @@ target/
 *.ipr
 
 # 環境変数 / 秘密情報
-/application.properties
-/.env
+src/main/resources/application.properties
+.env
 
 ### NetBeans ###
 /nbproject/private/
