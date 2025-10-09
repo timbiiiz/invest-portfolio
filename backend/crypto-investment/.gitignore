@@ -19,9 +19,9 @@ target/
 *.iml
 *.ipr
 
-# 秘密情報
-application.properties
-.env
+# 環境変数 / 秘密情報
+/application.properties
+/.env
 
 ### NetBeans ###
 /nbproject/private/
