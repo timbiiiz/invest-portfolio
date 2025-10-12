@@ -5,8 +5,12 @@ import com.team.crypto_investment.dto.UserResponse;
 import com.team.crypto_investment.entity.User;
 import com.team.crypto_investment.exception.ApiException;
 import com.team.crypto_investment.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/user")

@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()   // ログイン・登録は誰でもOK
+                        .requestMatchers("/api/uploads/**").permitAll() // 画像アップロード
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // admin専用
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN") // user or admin
                         .anyRequest().authenticated()
