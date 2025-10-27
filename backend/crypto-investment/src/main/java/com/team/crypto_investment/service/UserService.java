@@ -1,57 +1,53 @@
 package com.team.crypto_investment.service;
 
+import com.team.crypto_investment.dto.UpdateUserRequest;
 import com.team.crypto_investment.entity.User;
 import com.team.crypto_investment.exception.ApiException;
 import com.team.crypto_investment.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
-
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    public UserService(UserRepository repository, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = repository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    // プロフ画像url更新
-    public void updateProfileImage(Long userId, String imageUrl) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setProfileImageUrl(imageUrl);
-        userRepository.save(user);
-    }
-
-    // ユーザ登録処理
+    // 新規登録
     public User register(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()
                 || userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new ApiException("Username or email already exists");
         }
-        // パスワードをハッシュ化
+
+        // パスワードのハッシュ化
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // roleに何も入れなかったらuserが入るようにする(ADMINを入れると管理者になる)
-        if (user.getRole() == null || user.getRole().isEmpty()) user.setRole("USER");
-        user.setEnabled(true);
 
         return userRepository.save(user);
     }
 
-    // ログイン時のユーザ取得
-    public Optional<User> findByUsernameOrEmail(String identifier) {
-        return userRepository.findByUsername(identifier)
-                .or(() -> userRepository.findByEmail(identifier));
-    }
+    // ユーザ情報更新処理
+    public User updateUser(String principalUsername, UpdateUserRequest dto) {
+        User user = userRepository.findByUsername(principalUsername)
+                .orElseThrow(() -> new ApiException("User not found"));
 
-    // パスワードチェック
-    public boolean checkPassword(String raw, String encoded) {
-        return passwordEncoder.matches(raw, encoded);
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            user.setUsername(dto.getUsername());
+        }
+
+        if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            userRepository.findByEmail(dto.getEmail())
+                    .filter(u -> !u.getUsername().equals(principalUsername))
+                    .ifPresent(u -> {throw new ApiException("Email already exists"); });
+            user.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        return userRepository.save(user);
     }
 }

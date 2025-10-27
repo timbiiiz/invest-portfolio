@@ -5,48 +5,49 @@ import com.team.crypto_investment.dto.UserResponse;
 import com.team.crypto_investment.entity.User;
 import com.team.crypto_investment.exception.ApiException;
 import com.team.crypto_investment.repository.UserRepository;
-import org.springframework.http.ResponseEntity;
+import com.team.crypto_investment.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.security.Principal;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("api/user")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
+    // ログイン中のユーザ情報を取得
     @GetMapping("/me")
     public UserResponse getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // DBからユーザ情報を検索
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException("User not found"));
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+        // レスポンスdtoとして返す
+        return new UserResponse(user.getId(), user.getUsername(),user.getEmail());
     }
 
-    @PutMapping("/me")
+    // ユーザ情報更新
+    @PutMapping("/update")
     public UserResponse updateCurrentUser(@RequestBody UpdateUserRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApiException("User not found"));
 
-        if (request.getEmail() != null) user.setEmail(request.getEmail());
-        userRepository.save(user);
+        // Service層へ処理を渡す
+        User updated = userService.updateUser(username, request);
 
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+        return new UserResponse(updated.getId(), updated.getUsername(), updated.getEmail());
     }
 
-    @DeleteMapping("/me")
+    // アカウント削除
+    @DeleteMapping("/delete")
     public void deleteCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException("User not found"));
+
         userRepository.delete(user);
     }
 }

@@ -1,52 +1,47 @@
 package com.team.crypto_investment.controller;
 
-import com.team.crypto_investment.entity.Stock;
-import com.team.crypto_investment.service.StockService;
+import com.team.crypto_investment.service.FinnhubService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/stocks")
+@AllArgsConstructor
+@RequestMapping("/api")
 public class StockController {
+    private final FinnhubService finnhubService;
 
-    private final StockService stockService;
+    @GetMapping("/stocks")
+    public Mono<ResponseEntity<List<Map<String,Object>>>> listSymbols(
+            @RequestParam(defaultValue = "US") String exchange,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
 
-    public StockController(StockService stockService) {
-        this.stockService = stockService;
-    }
-
-    @GetMapping("/update/{symbol}")
-    public ResponseEntity<Stock> updateStock(@PathVariable String symbol) {
-        try {
-            Stock updated = stockService.updateStockPrice(symbol);
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @GetMapping
-    public List<Stock> getAllStocks() {
-        return stockService.findAll();
-    }
-
-    @GetMapping("/{symbol}")
-    public ResponseEntity<Stock> getStockBySymbol(@PathVariable String symbol) {
-        return stockService.findBySymbol(symbol)
+        return finnhubService.getSymbols(exchange)
+                .map(allSymbols -> {
+                    int start = Math.min(page * size, allSymbols.size());
+                    int end = Math.min(start + size, allSymbols.size());
+                    return allSymbols.subList(start, end);
+                })
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .onErrorResume(ex -> Mono.just(
+                        ResponseEntity.status(500)
+                                .body(List.of(Map.of("error", ex.getMessage())))
+                ));
     }
 
-    @PostMapping
-    public Stock addStock(@RequestBody Stock stock) {
-        return stockService.save(stock);
+    @GetMapping("/quote")
+    public Mono<ResponseEntity<Object>> quote(@RequestParam String symbol) {
+        return finnhubService.getQuote(symbol)
+                .map(ResponseEntity::ok)
+                .onErrorResume(ex -> Mono.just(ResponseEntity.status(500).body(Map.of("error", ex.getMessage()))));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStock(@PathVariable Long id) {
-        stockService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
 }

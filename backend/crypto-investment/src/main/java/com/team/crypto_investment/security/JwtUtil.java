@@ -27,46 +27,34 @@ public class JwtUtil {
     }
 
     // JWT生成
-    public String generateToken(String username, String role) {
+    public String generateToken(String username) {
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expiration);
+
         return Jwts.builder()
                 .subject(username)
-                .claim("role", role)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(now)
+                .expiration(expiryDate)
                 .signWith(key)
                 .compact();
     }
 
-    // JWTからユーザー名を取得
-    public String extractUsername(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
-
-    // JWTからロールを取得
-    public String extractRole(String token) {
-        return (String) Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("role");
-    }
-
-    // JWT検証
+    // jwt検証
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token);
+            Jwts.parser().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    // JWTからユーザー名を取得
+    public String extractUsername(String token) {
+        return Jwts.parser().setSigningKey(key).build()
+                .parseSignedClaims(token)
+                .getBody()
+                .getSubject();
     }
 }
