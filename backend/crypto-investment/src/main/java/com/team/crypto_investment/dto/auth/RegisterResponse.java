@@ -1,13 +1,13 @@
-package com.team.crypto_investment.dto;
+package com.team.crypto_investment.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class UserResponse {
+public class RegisterResponse {
     private Long id;
     private String username;
     private String email;
+    private String token;
 }

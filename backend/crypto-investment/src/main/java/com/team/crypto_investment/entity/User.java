@@ -24,6 +24,7 @@ public class User {
     private String email;
     private String password;
     private boolean enabled = true;
+    private String token;
 
     private double cash = 0.0; // 現金残高
 

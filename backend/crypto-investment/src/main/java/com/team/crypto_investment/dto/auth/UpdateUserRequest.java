@@ -1,4 +1,4 @@
-package com.team.crypto_investment.dto;
+package com.team.crypto_investment.dto.auth;
 
 import lombok.Data;
 
