@@ -15,7 +15,6 @@ Made asset management app used by React, Spring Boot.
 - CRUD operation
 - Responsive UI design
 
-## Screenshots
-
-## Live Demo
+## Live or Screenshots
+Landing Page - https://front-invest-portfolio.vercel.app/
 
