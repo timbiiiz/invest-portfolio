@@ -18,4 +18,6 @@ Made asset management app used by React, Spring Boot.
 ## Screenshots
 
 ## Live Demo
+frontend: https://my-investapp.vercel.app/
+backend: 
 
